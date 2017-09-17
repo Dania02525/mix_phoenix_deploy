@@ -15,11 +15,11 @@ end
 
 ## Use
 configure `deploy.yml` in your application root with a stage and the parameters as in 
-the provided `deploy.yml.example
+the provided `deploy.yml.example`
 
 Now you can do command like deploys like this: 
 ```elixir
-iex> mix phoenix.deploy -production
+~$ mix phoenix.deploy -production
 ```
 
 ## Gotchas
