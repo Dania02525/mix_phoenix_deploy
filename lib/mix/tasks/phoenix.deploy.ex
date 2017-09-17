@@ -1,64 +1,46 @@
 defmodule Mix.Tasks.Phoenix.Deploy do
   use Mix.Task
+  import MixPhoenixDeploy.Helper
 
   @shortdoc "Deploys a phoenix application"
 
-  def run(stage) do
+  def run([]) do
+    raise "Stage was not specified, specify with -production or -development"
+  end
+
+  def run(args) do
+    stage = args
+      |> List.first
+      |> String.replace_prefix("-", "")
+
     Application.ensure_all_started(:yaml_elixir)
     Application.ensure_all_started(:sshex)
-    config = read_config()[stage]
-    conn = SSHex.connect ip: server(config), user: user(config)
-    run_predeploy_hook(config)
-    ensure_file_structure(conn, config)
-    check_old_versions(conn, config)
-    clone_new_version(conn, config)
-    symlink_current(conn, config)
-    run_migrations(conn, config)
-    restart_app(conn, config)
-    run_postdeploy_hook(conn, config)
-  end
 
-  def server(config) do
-    config[stage]["server"]
-    |> String.to_char_list
-  end
-
-  def user(config) do
-    config[stage]["user"]
-    |> String.to_char_list
-  end
-
-  def ensure_file_structure(conn, config) do
-    with {:ok, _, 0} <- SSHEx.run conn, command(["mkdir", "-p", config["app_root"]),
-         {:ok, _, 0} <- SSHEx.run conn, command(["mkdir", "-p", Path.join(config["app_root"], "current")
+    with {:ok, msg} <- init_config(stage),
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.FileStructurer.ensure_file_structure,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.VersionManager.prepare_folders,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.GitCloner.clone_repo,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.SymLinker.symlink_current,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.DepsGetter.get_deps,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.Compiler.compile,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.AssetBuilder.build,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.DatabaseMigrator.migrate,
+         _ <- IO.puts(msg),
+         {:ok, msg} <- MixPhoenixDeploy.ServerStarter.restart,
+         _ <- IO.puts(msg)
     do
-      IO.puts "App directory exists at " <> config["app_root"]
+      IO.puts "Successfully deployed and restarted application!"
+    else
+      err -> err
+      IO.puts "Deploy FAILED! something went wrong: #{inspect err}"
     end
-  end
-
-  def check_old_versions(conn, config) do
-    {:ok, dirs, 0} = SSHex.run conn, command("find" config["app_root"] <> "/*", "-maxdepth", "0", "-type", "d")
-    IO.puts "Found #{Enum.count(dirs) -1} existing versions"
-    if Enum.count(dirs) > config["versions_to_keep"]
-      remove_old_versions(conn, dirs)
-    end
-  end
-
-  def remove_old_versions(conn, dirs) do
-
-  end
-
-  def command([], cmd) do
-    String.to_char_list(cmd)
-  end
-
-  def command([ h | t ], cmd \\ "") do
-    command(t, cmd <> h)
-  end
-
-  def read_config do
-    IO.puts "parsing deploy.yml from project root"
-    Path.join(Mix.Project.app_path(), "deploy.yml")
-    |> YamlElixir.read_from_file([])
   end
 end

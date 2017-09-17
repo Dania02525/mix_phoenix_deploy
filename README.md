@@ -13,7 +13,18 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/mix_phoenix_deploy](https://hexdocs.pm/mix_phoenix_deploy).
+## Use
+```elixir
+iex> mix phoenix.deploy -production
+```
 
+## Gotchas
+* You must have elixir, erlang and git installed on remote server
+* Your local private keyfile (in ~/.ssh) must be called id_rsa
+* You will probably have to do a `sudo apt-get install build-essential` on remote server to compile deps with c code (bcrypt is a good example)
+* Make sure your config/prod.exs imports from `/home/-deploy user-/-app root-/shared/prod.secret.exs`
+* Make sure you have generated a private key on the remote server and added the public key to your git profile
+
+## Todo
+* pre and post deploy hooks
+* rollback

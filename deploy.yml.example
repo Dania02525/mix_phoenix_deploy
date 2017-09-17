@@ -1,0 +1,9 @@
+production:
+  server: '11.11.11.11'
+  user: 'deploy'
+  app_root: 'myapp'
+  versions_to_keep: 5
+  port: 8080
+  brunch_build: false
+  repo_target: 'git@bitbucket.org:myname/myapp.git'
+  server_start_command: "MIX_ENV=prod PORT=8080 elixir --detached -S mix do compile, phx.server"

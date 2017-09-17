@@ -1,8 +1,0 @@
-production:
-  server: '12.12.12.122'
-  user: 'deploy'
-  app_root: 'app'
-  mix_env: 'production'
-  pre_deploy_hook: 'fn -> IO.puts "Some Hook" end'
-  post_deploy_hook: 'fn -> IO.puts "Some Hook" end'
-  versions_to_keep: 5
