@@ -19,11 +19,11 @@ defmodule MixPhoenixDeploy.ServerStarter do
   end
 
   defp stop(pid) do
-    SSHEx.run conn(), command(["kill", "-9", pid])
+    SSHEx.run conn(), command(["sudo", "kill", "-9", pid])
   end
 
   def find_pid do
-    SSHEx.run conn(), command(["lsof", "-t", "-i:#{port()}"])
+    SSHEx.run conn(), command(["sudo", "lsof", "-t", "-i:#{port()}"])
   end
 
   def port do

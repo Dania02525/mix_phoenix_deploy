@@ -28,6 +28,8 @@ Now you can do command like deploys like this:
 * You will probably have to do a `sudo apt-get install build-essential` on remote server to compile deps with c code (bcrypt is a good example)
 * Make sure your config/prod.exs imports from `/home/-deploy user-/-app root-/shared/prod.secret.exs`
 * Make sure you have generated a private key on the remote server and added the public key to your git profile
+* make sure you have added something like the following with `sudo visudo` on the remote server:
+`deploy ALL=(ALL:ALL) NOPASSWD: ALL` so the deployer doesn't get stuck waiting for the sudoer password
 
 ## Todo
 * pre and post deploy hooks
